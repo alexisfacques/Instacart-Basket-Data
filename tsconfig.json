@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "strictNullChecks": false,
+        "target": "es5",
+        "lib": [
+            "es5",
+            "es6",
+            "esnext",
+            "dom"
+        ],
+        "outDir": "dist",
+        "strict": true
+    },
+    "include": [
+        "src/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}

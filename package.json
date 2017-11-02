@@ -1,0 +1,47 @@
+{
+  "name": "instacart-basket-data",
+  "version": "1.0.0",
+  "description": "Data mining & visualisation (Frequent itemsets, sequential patterns, discriminative patterns) over the Instacart Market Basket Analysis, using NodeJS & Typescript",
+  "main": "dist/app.js",
+  "scripts": {
+    "start": "node dist/app.js",
+    "test": "npm run tsc && node dist/app.js",
+    "tsc": "./node_modules/typescript/bin/tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexisfacques/Instacart-Basket-Data.git"
+  },
+  "keywords": [
+    "Instacart",
+    "Basket",
+    "Data",
+    "Mining",
+    "Apriori",
+    "Jupyter",
+    "Notebook"
+  ],
+  "author": "Alexis Facques",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/alexisfacques/Instacart-Basket-Data/issues"
+  },
+  "homepage": "https://github.com/alexisfacques/Instacart-Basket-Data#readme",
+  "devDependencies": {
+    "@types/csv-parse": "^1.1.11",
+    "@types/d3": "^4.11.0",
+    "@types/node": "^8.0.47",
+    "@types/rx": "^4.1.1",
+    "@types/rx-node": "0.0.5",
+    "typescript": "^2.5.3"
+  },
+  "dependencies": {
+    "apriori": "^1.0.7",
+    "child_process": "^1.0.2",
+    "csv-parse": "^2.0.0",
+    "d3": "^4.11.0",
+    "fs": "0.0.1-security",
+    "rx-node": "^1.0.2",
+    "rxjs": "^5.5.2"
+  }
+}
