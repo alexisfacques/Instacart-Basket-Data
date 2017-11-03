@@ -3,6 +3,7 @@
 
 node_modules/
 dist/
+.ipynb_checkpoints
 
 *.swp
 *.swo
@@ -12,3 +13,10 @@ dist/
 .sass-cache
 .git
 
+spmf.jar
+
+output/*
+!output/.gitkeep
+
+instacart_basket_data/*
+!instacart_basket_data/.gitkeep

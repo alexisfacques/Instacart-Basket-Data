@@ -38,14 +38,18 @@ export class CSVParser<T> {
     /**
      * Function returns an Observable of parsed data, grouped by any of its key.
      */
-    public generateItemsets<U>( key: keyof T, map: (val: T) => U ): Rx.Observable<Group<T,U>> {
+    public generateItemsets<U>( key: keyof T, map: (val: T) => U, filter?: (val: T) => boolean ): Rx.Observable<Group<T,U>> {
         // Turning native stream into Observable
         return RxNode.fromStream( fs.createReadStream(this.inputFile).pipe(this._parser) )
             // Grouping objects by order
             .groupBy( (data: T) => data[key] )
             // At this point, we basically have an Observable by group. Thus we need to flatten that.
             .flatMap( (group: Rx.GroupedObservable<T[keyof T], T>) => {
-                return group
+                let ret: Rx.Observable<any> = group;
+                // Filtering the data
+                if(filter) ret = group.filter(filter);
+
+                return ret
                     // Formatting the data
                     .map(map)
                     // And flattening the Observable array.
