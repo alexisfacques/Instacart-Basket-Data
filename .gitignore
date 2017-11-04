@@ -15,8 +15,5 @@ dist/
 
 spmf.jar
 
-output/*
-!output/.gitkeep
-
 instacart_basket_data/*
 !instacart_basket_data/.gitkeep
