@@ -26,9 +26,9 @@ export interface SPMFStats {
     memory?: number,
 }
 
-export interface SPMFResults {
+export interface SPMFResults<T extends ItemSet | Rule> {
     stats?: SPMFStats,
-    itemsets?: ItemSet[] | Rule[],
+    output: T[],
 }
 
 export class SPMF {
@@ -79,11 +79,11 @@ export class SPMF {
      * @param  {number}                  confidence Optional: Minimum confidence IN PERCENT
      * @return {Observable<SPMFResults>}            The Observable which will emit results.
      */
-    public exec( support: number, confidence?: number ): Observable<SPMFResults> {
+    public exec<T extends ItemSet | Rule>( support: number, confidence?: number ): Observable<SPMFResults<T>> {
         let outputFile: string = `/tmp/${new Date().getTime()}_itemsets_${this.algorithm}_${support}.txt`;
 
         // Pushing data here when available
-        let dataSubject: Subject<SPMFResults> = new Subject<SPMFResults>();
+        let dataSubject: Subject<SPMFResults<T>> = new Subject<SPMFResults<T>>();
         // Calling this Subject on child_process close.
         let closeSubject: Subject<void> = new Subject<void>();
 
@@ -104,17 +104,17 @@ export class SPMF {
                 spmf.stdout.on('data', (data: Buffer) => this._parseStdout(stats,data.toString()) );
                 // Close Observable encapsulation.
                 spmf.on('close', (code: number) => {
-                    // Gathering results.
-                    new CSVParser<string[]>(outputFile, { delimiter: ' #SUP: ' }).loadAll()
+                    // Gathering results (actually not using the CSV parser anymore (that explains the silly delimiter), using RegExp to match rows)
+                    new CSVParser<string[]>(outputFile, { delimiter: '\n\r' }).loadAll()
                         // Once the data is loaded from the file...
                         .then(  (table: Array<string[]>) => {
                             // ...creating itemsets or rules.
-                            let itemsets: ItemSet[] = table.map( (row: string[]) => this._formatResultRow( row, !!confidence ) );
+                            let results: T[] = table.map( (row: string[]) => <T> this._formatResultRow(row[0]) );
 
                             // ... then pushing the data through the Observable.
                             dataSubject.next({
                                 stats: stats,
-                                itemsets: itemsets
+                                output: results
                             });
 
                             // Then closing the Observable, as we're done here
@@ -186,30 +186,35 @@ export class SPMF {
         return match[0].match(/(\d)+(\.)*(\d)*/g).map(Number)[0];
     }
 
-    private _formatResultRow( row: string[], hasConfidence: boolean = false): ItemSet | Rule {
-        if(hasConfidence) return this._formatRule(row);
-        return this._formatItemSet(row);
-    }
-
-    private _formatRule( row: string[] ): Rule {
-        // Result file looks like. row is already splitted with separator ' #SUP '.
-        // 21137 21903 47209 ==> 13176 #SUP: 163 #CONF: 0.49393939393939396
-
-        let stats: string[] = row[1].trim().split(' #CONF: ');
-        let ids: string[] = row[0].trim().split(' ==> ');
-
-        return {
-            support: Number.parseInt(stats[0]),
-            confidence: Number.parseFloat(stats[1]),
-            items: ids[0].trim().split(' '),
-            results: ids[1].trim().split(' ')
+    private _formatResultRow( row: string ): Rule | ItemSet {
+        switch(this._getTypeOfResult(row)) {
+            case 'Rule':
+                return this._getRule(row);
+            case 'ItemSet':
+                return this._getItemSet(row);
         }
     }
 
-    private _formatItemSet( row: string[] ): ItemSet {
+    private _getItemSet( row: string ): ItemSet {
         return {
-            support: Number.parseInt(row[1]),
-            items: row[0].trim().split(' ')
-        }
+            support: Number.parseInt(row.match(/#SUP: (\d)+/g)[0].match(/(\d)+\.*(\d)*/g)[0]),
+            items: row.match(/((\d)+ )*#SUP:/g)[0].match(/(\d)+\.*(\d)*/g)
+        };
+    }
+
+    private _getRule( row: string ): Rule {
+        return {
+            support: Number.parseInt(row.match(/#SUP: (\d)+/g)[0].match(/(\d)+\.*(\d)*/g)[0]),
+            confidence: Number.parseFloat(row.match(/#CONF: (\d)+\.*(\d)*/g)[0].match(/(\d)+\.*(\d)*/g)[0]),
+            items: row.match(/((\d)+ )*==>/g)[0].match(/(\d)+\.*(\d)*/g),
+            results: row.match(/==> ((\d)+ )*/g)[0].match(/(\d)+\.*(\d)*/g)
+        };
+    }
+
+    private _getTypeOfResult( rowCell: string ): string {
+        rowCell = rowCell.trim();
+        if( rowCell.match(/^(\d* )+#SUP: (\d*( )*)+\t*\n*\r*$/g) ) return 'ItemSet';
+        if( rowCell.match(/^(\d* )+==> (\d* )+#SUP: (\d* )+#CONF: (\d*)+\.*\d*\t*\n*\r*$/g) ) return 'Rule';
+        return null;
     }
 }

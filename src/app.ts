@@ -18,13 +18,8 @@ import 'rxjs/add/operator/finally';
 
 new SPMF('FPGrowth_association_rules')
     .fromFile(`/Users/alexisfacques/Projects/python-apriori/formatted_itemsets.csv`)
-    .exec(0.1,25)
-    .subscribe((results: SPMFResults) => {
+    .exec<Rule>(1,25)
+    .subscribe((results: SPMFResults<Rule>) => {
         console.log(results.stats);
-        console.log(results.itemsets.length);
-
-        let rules: Rule[] = <Rule[]> results.itemsets;
-        rules = rules.filter((rule: Rule) => rule.items.length > 1 );
-
-        console.log(rules);
+        console.log(results.output);
     });
