@@ -13,6 +13,13 @@ export interface ItemSet {
     support: number
 }
 
+export interface Rule {
+    support: number,
+    confidence: number,
+    items: string[],
+    results: string[]
+}
+
 export interface SPMFStats {
     candidates?: number,
     executionTime?: number,
@@ -21,7 +28,7 @@ export interface SPMFStats {
 
 export interface SPMFResults {
     stats?: SPMFStats,
-    itemsets: ItemSet[]
+    itemsets?: ItemSet[] | Rule[],
 }
 
 export class SPMF {
@@ -66,12 +73,13 @@ export class SPMF {
     }
 
     /**
-     * Executes the Algorithm with the proper support.
+     * Executes the Algorithm with the proper support and confidence (if mining association rules).
      * Listen for results through the Observable returned.
-     * @param  {number}                  support The support to apply IN PERCENT
-     * @return {Observable<SPMFResults>}         The Observable which will emit results.
+     * @param  {number}                  support    Minimum support IN PERCENT
+     * @param  {number}                  confidence Optional: Minimum confidence IN PERCENT
+     * @return {Observable<SPMFResults>}            The Observable which will emit results.
      */
-    public exec( support: number ): Observable<SPMFResults> {
+    public exec( support: number, confidence?: number ): Observable<SPMFResults> {
         let outputFile: string = `/tmp/${new Date().getTime()}_itemsets_${this.algorithm}_${support}.txt`;
 
         // Pushing data here when available
@@ -87,8 +95,12 @@ export class SPMF {
 
         this._ifArrayWriteFile()
             .then( () => {
+                // Arguments needed in order to run the algorithms.
+                let args: string[] = this._getArguments().concat([outputFile, support+'%']);
+                if(confidence) args.push(confidence+'%');
+
                 // Main child_process (command exection) which is encapsulated here.
-                spmf = cp.spawn( 'java', this._getArguments().concat([outputFile, support+'%']) );
+                spmf = cp.spawn('java', args);
                 spmf.stdout.on('data', (data: Buffer) => this._parseStdout(stats,data.toString()) );
                 // Close Observable encapsulation.
                 spmf.on('close', (code: number) => {
@@ -96,13 +108,8 @@ export class SPMF {
                     new CSVParser<string[]>(outputFile, { delimiter: ' #SUP: ' }).loadAll()
                         // Once the data is loaded from the file...
                         .then(  (table: Array<string[]>) => {
-                            // ...creating itemsets.
-                            let itemsets: ItemSet[] = table.map( (row: string[]) => {
-                                return {
-                                    support: Number.parseInt(row[1]),
-                                    items: row[0].trim().split(' ')
-                                }
-                            });
+                            // ...creating itemsets or rules.
+                            let itemsets: ItemSet[] = table.map( (row: string[]) => this._formatResultRow( row, !!confidence ) );
 
                             // ... then pushing the data through the Observable.
                             dataSubject.next({
@@ -177,5 +184,32 @@ export class SPMF {
         let match: string[] = str.match(regExp)
         if(!match) return null;
         return match[0].match(/(\d)+(\.)*(\d)*/g).map(Number)[0];
+    }
+
+    private _formatResultRow( row: string[], hasConfidence: boolean = false): ItemSet | Rule {
+        if(hasConfidence) return this._formatRule(row);
+        return this._formatItemSet(row);
+    }
+
+    private _formatRule( row: string[] ): Rule {
+        // Result file looks like. row is already splitted with separator ' #SUP '.
+        // 21137 21903 47209 ==> 13176 #SUP: 163 #CONF: 0.49393939393939396
+
+        let stats: string[] = row[1].trim().split(' #CONF: ');
+        let ids: string[] = row[0].trim().split(' ==> ');
+
+        return {
+            support: Number.parseInt(stats[0]),
+            confidence: Number.parseFloat(stats[1]),
+            items: ids[0].trim().split(' '),
+            results: ids[1].trim().split(' ')
+        }
+    }
+
+    private _formatItemSet( row: string[] ): ItemSet {
+        return {
+            support: Number.parseInt(row[1]),
+            items: row[0].trim().split(' ')
+        }
     }
 }

@@ -29,7 +29,7 @@ function _readAndGroupBy<T>( key: keyof ProductOrder, map: (val: ProductOrder) =
     });
 
     // Turning native stream into Observable
-    return RxNode.fromStream( fs.createReadStream(`${__dirname}/../${__foldername}/order_products__train.csv`).pipe(parser) )
+    return RxNode.fromStream<ProductOrder>( fs.createReadStream(`${__dirname}/../${__foldername}/order_products__train.csv`).pipe(parser) )
         // Grouping objects by order
         .groupBy( (data: ProductOrder) => data[key] )
         // At this point, we basically have an Observable by group. Thus we need to flatten that.
