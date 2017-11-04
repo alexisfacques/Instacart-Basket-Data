@@ -30,6 +30,7 @@
   "homepage": "https://github.com/alexisfacques/Instacart-Basket-Data#readme",
   "devDependencies": {
     "@types/csv-parse": "^1.1.11",
+    "@types/d3": "^4.11.0",
     "@types/node": "^8.0.47",
     "@types/rx": "^4.1.1",
     "@types/rx-node": "0.0.5",
@@ -39,8 +40,10 @@
     "apriori": "^1.0.7",
     "child_process": "^1.0.2",
     "csv-parse": "^2.0.0",
+    "d3": "^4.11.0",
     "fs": "0.0.1-security",
     "rx-node": "^1.0.2",
-    "rxjs": "^5.5.2"
+    "rxjs": "^5.5.2",
+    "zingchart": "^2.6.1"
   }
 }
