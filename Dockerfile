@@ -33,7 +33,7 @@ COPY tsconfig.json .
 RUN npm install
 
 # Bundle app sources
-COPY ./output ./
+COPY ./output ./output
 COPY ./src ./src
 COPY notebook.ipynb .
 
