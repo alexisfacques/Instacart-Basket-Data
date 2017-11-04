@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node dist/app.js",
     "test": "npm run tsc && node dist/app.js",
-    "tsc": "./node_modules/typescript/bin/tsc"
+    "tsc": "./node_modules/typescript/bin/tsc",
+    "jupyter": "its --ip 0.0.0.0 --port 9999 --no-browser --allow-root"
   },
   "repository": {
     "type": "git",
@@ -29,7 +30,6 @@
   "homepage": "https://github.com/alexisfacques/Instacart-Basket-Data#readme",
   "devDependencies": {
     "@types/csv-parse": "^1.1.11",
-    "@types/d3": "^4.11.0",
     "@types/node": "^8.0.47",
     "@types/rx": "^4.1.1",
     "@types/rx-node": "0.0.5",
@@ -39,7 +39,6 @@
     "apriori": "^1.0.7",
     "child_process": "^1.0.2",
     "csv-parse": "^2.0.0",
-    "d3": "^4.11.0",
     "fs": "0.0.1-security",
     "rx-node": "^1.0.2",
     "rxjs": "^5.5.2"
