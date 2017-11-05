@@ -23,7 +23,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 `docker run -v <PATH TO YOUR FOLDER>:/usr/src/app/instacart_basket_data -p 9999:9999 instacart`
 
-- Jupyter Notebook Server is available on `http//localhost:9999`. Default password to the notebook is `dmv`.
+- Jupyter Notebook Server is available on `http//localhost:9999`. Default password to the notebook is `dmv`. You may have to rerun the notebook in order to see the graphs (or at list, dependency loader + graph cells).
 
 ## License
 
