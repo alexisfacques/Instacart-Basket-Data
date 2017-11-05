@@ -26,7 +26,12 @@ export interface SPMFStats {
     memory?: number,
 }
 
-export interface SPMFResults<T extends ItemSet | Rule> {
+export interface Sequence {
+    itemsets: string[][],
+    support: number
+}
+
+export interface SPMFResults<T extends ItemSet | Rule | Sequence> {
     stats?: SPMFStats,
     output: T[],
 }
@@ -79,7 +84,7 @@ export class SPMF {
      * @param  {number}                  confidence Optional: Minimum confidence IN PERCENT
      * @return {Observable<SPMFResults>}            The Observable which will emit results.
      */
-    public exec<T extends ItemSet | Rule>( support: number, confidence?: number ): Observable<SPMFResults<T>> {
+    public exec<T extends ItemSet | Rule | Sequence>( support: number, confidence?: number ): Observable<SPMFResults<T>> {
         let outputFile: string = `/tmp/${new Date().getTime()}_itemsets_${this.algorithm}_${support}.txt`;
 
         // Pushing data here when available
@@ -186,12 +191,16 @@ export class SPMF {
         return match[0].match(/(\d)+(\.)*(\d)*/g).map(Number)[0];
     }
 
-    private _formatResultRow( row: string ): Rule | ItemSet {
+    private _formatResultRow( row: string ): Rule | ItemSet | Sequence {
         switch(this._getTypeOfResult(row)) {
             case 'Rule':
                 return this._getRule(row);
             case 'ItemSet':
                 return this._getItemSet(row);
+            case 'Sequence':
+                return this._getSequence(row);
+            default:
+                throw new Error('Unknown output file format');
         }
     }
 
@@ -211,10 +220,22 @@ export class SPMF {
         };
     }
 
+    private _getSequence( row: string ): Sequence {
+        let itemSets: string[][] = row.match(/((\d+ )+-1)+/g).map( (unformatedItemSet: string) => {
+            return unformatedItemSet.replace(' -1','').split(' ');
+        });
+
+        return {
+            itemsets: itemSets,
+            support: Number.parseInt(row.match(/#SUP: (\d)+/g)[0].match(/(\d)+\.*(\d)*/g)[0])
+        };
+    }
+
     private _getTypeOfResult( rowCell: string ): string {
         rowCell = rowCell.trim();
         if( rowCell.match(/^(\d* )+#SUP: (\d*( )*)+\t*\n*\r*$/g) ) return 'ItemSet';
         if( rowCell.match(/^(\d* )+==> (\d* )+#SUP: (\d* )+#CONF: (\d*)+\.*\d*\t*\n*\r*$/g) ) return 'Rule';
+        if( rowCell.match(/((\d+ )+-1 )+#SUP: \d+/g) ) return 'Sequence';
         return null;
     }
 }

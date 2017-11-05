@@ -1,0 +1,7 @@
+order_id,user_id,eval_set,order_number,order_dow,order_hour_of_day,days_since_prior_order
+2539329,1,prior,1,2,08,
+2398795,1,prior,2,3,07,15.0
+473747,1,prior,3,3,12,21.0
+2254736,1,prior,4,4,07,29.0
+431534,1,prior,5,4,15,28.0
+3367565,1,prior,6,2,07,19.0

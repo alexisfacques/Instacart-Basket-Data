@@ -13,7 +13,7 @@ Results are presented through a runnable Jupyter Notebook.
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
-- Download and unzip the dataset files from [Instacart's website](https://www.instacart.com/datasets/grocery-shopping-2017); Smaller and custom files are already provided.
+- Download and unzip the dataset files from [Instacart's website](https://www.instacart.com/datasets/grocery-shopping-2017); Smaller (for display purposes only) and custom files (preformatted datasets) are already provided.
 
 - Clone this repo, build the docker image:
 
