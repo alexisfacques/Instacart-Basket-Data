@@ -78,6 +78,39 @@ export class SPMF {
     }
 
     /**
+     * A simplified version of exec, as we actually load results from a file.
+     * SPMFResults returns no stats on the execution, only the output.
+     * Listen for results through the Observable returned.
+     * @return {Observable<SPMFResults>}            The Observable which will emit results.
+     */
+    public loadResultsFromFile<T extends ItemSet | Rule | Sequence>( file:string ): Observable<SPMFResults<T>> {
+        // Pushing data here when available
+        let dataSubject: Subject<SPMFResults<T>> = new Subject<SPMFResults<T>>();
+        // Calling this Subject on child_process close.
+        let closeSubject: Subject<void> = new Subject<void>();
+
+        new CSVParser<string[]>(file, { delimiter: '\n\r' }).loadAll()
+            // Once the data is loaded from the file...
+            .then(  (table: Array<string[]>) => {
+                // ...creating itemsets or rules.
+                let results: T[] = table.map( (row: string[]) => <T> this._formatResultRow(row[0]) );
+
+                // ... then pushing the data through the Observable.
+                dataSubject.next({
+                    output: results
+                });
+
+                // Then closing the Observable, as we're done here
+                closeSubject.next();
+            });
+
+        return dataSubject
+            .asObservable()
+            .takeUntil(closeSubject)
+            .finally( () => closeSubject.complete() );
+    }
+
+    /**
      * Executes the Algorithm with the proper support and confidence (if mining association rules).
      * Listen for results through the Observable returned.
      * @param  {number}                  support    Minimum support IN PERCENT
@@ -207,7 +240,7 @@ export class SPMF {
     private _getItemSet( row: string ): ItemSet {
         return {
             support: Number.parseInt(row.match(/#SUP: (\d)+/g)[0].match(/(\d)+\.*(\d)*/g)[0]),
-            items: row.match(/((\d)+ )*#SUP:/g)[0].match(/(\d)+\.*(\d)*/g)
+            items: row.match(/((\d)+ )+\s*#SUP:/g)[0].match(/(\d)+\.*(\d)*/g)
         };
     }
 
