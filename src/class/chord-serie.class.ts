@@ -3,15 +3,15 @@ export class ChordSerie {
 
     constructor( public itemId: string ){}
 
-    public setSeriesNumber( value: number ): void {
+    public setSeriesNumber( value: number ): ChordSerie {
         // This create 0-filled array of size 'value'.
         this._relationCount = Array.apply(null, Array(value)).map(Number.prototype.valueOf,0);
+        return this;
     }
 
-    public addRelation( weight: number, seriesId: number[] ): void {
-        seriesId.forEach( (id: number) => {
-            this._relationCount[id] += weight;
-        });
+    public addRelation( weight: number, seriesId: number[] ): ChordSerie {
+        seriesId.forEach( (id: number) => this._relationCount[id] += weight );
+        return this;
     }
 
     public getValues(): number[] {
