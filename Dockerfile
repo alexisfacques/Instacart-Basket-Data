@@ -34,6 +34,7 @@ RUN npm install
 
 # Bundle app sources
 COPY ./output ./output
+COPY ./custom_data ./custom_data
 COPY ./src ./src
 COPY notebook.ipynb .
 
